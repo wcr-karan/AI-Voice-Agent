@@ -25,32 +25,7 @@ Built with **RetellAI** (Conversational AI) + **FastAPI** (Python Backend) + **G
 
 ## 🏗️ Architecture
 
-```
-┌─────────────────────┐
-│   Inbound Call       │
-│   (PSTN / WebRTC)    │
-└────────┬────────────┘
-         │
-         ▼
-┌─────────────────────┐     Function Nodes      ┌─────────────────────┐
-│                     │ ◄──────────────────────► │                     │
-│   RetellAI Agent    │     (Real-time API)      │   FastAPI Backend   │
-│   (Conversation     │                          │                     │
-│    Flow Engine)     │ ────────────────────────► │  POST /webhook      │
-│                     │     Webhooks (Post-call)  │  POST /book-apt     │
-└─────────────────────┘                          │  POST /check-avail  │
-                                                 │  POST /check-faq    │
-                                                 │  POST /transfer     │
-                                                 └────────┬────────────┘
-                                                          │
-                                          ┌───────────────┼───────────────┐
-                                          ▼               ▼               ▼
-                                   ┌────────────┐  ┌────────────┐  ┌──────────┐
-                                   │   Google    │  │   Google    │  │  SMTP    │
-                                   │   Sheets    │  │   Sheets    │  │  Email   │
-                                   │ (Bookings)  │  │ (Call Logs) │  │ Service  │
-                                   └────────────┘  └────────────┘  └──────────┘
-```
+![Architecture Diagram](docs/architecture.png)
 
 ---
 

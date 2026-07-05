@@ -1,0 +1,79 @@
+flowchart TD
+
+subgraph group_retell["RetellAI"]
+  node_retell_agent_config["Agent config<br/>retell config<br/>[agent_config.json]"]
+  node_retell_flow["Conversation flow<br/>retell flow"]
+  node_retell_prompts["Prompt pack<br/>retell prompts"]
+end
+
+subgraph group_backend["FastAPI backend"]
+  node_main_app["App entry<br/>fastapi bootstrap<br/>[main.py]"]
+  node_api_booking["Booking API<br/>route handler<br/>[booking.py]"]
+  node_api_availability["Availability API<br/>route handler<br/>[availability.py]"]
+  node_api_faq["FAQ API<br/>route handler<br/>[faq.py]"]
+  node_api_transfer["Transfer API<br/>route handler<br/>[transfer.py]"]
+  node_api_webhook["Webhook API<br/>route handler<br/>[webhook.py]"]
+  node_signature_mw["Signature check<br/>webhook middleware<br/>[signature.py]"]
+  node_booking_service["Booking service<br/>domain service<br/>[booking_service.py]"]
+  node_faq_service["FAQ service<br/>domain service<br/>[faq_service.py]"]
+  node_sheets_service[("Sheets service<br/>data access<br/>[sheets_service.py]")]
+  node_email_service["Email service<br/>notification service<br/>[email_service.py]"]
+  node_appointment_models["Appointment models<br/>pydantic schemas<br/>[appointment.py]"]
+  node_faq_models["FAQ models<br/>pydantic schemas<br/>[faq.py]"]
+  node_webhook_models["Webhook models<br/>pydantic schemas<br/>[webhook_event.py]"]
+  node_config["Config<br/>[config.py]"]
+end
+
+subgraph group_external["External systems"]
+  node_google_sheets[("Google Sheets<br/>external store")]
+  node_smtp["SMTP<br/>external mail"]
+end
+
+subgraph group_support["Support"]
+  node_datetime_helpers["Datetime helpers"]
+  node_logger["Logger<br/>[logger.py]"]
+  node_email_template["Email template<br/>html template"]
+  node_setup_sheets["Sheets setup<br/>bootstrap script"]
+  node_seed_faq["Seed FAQ<br/>bootstrap script<br/>[seed_faq_data.py]"]
+  node_demo_sim["Demo simulation<br/>integration script<br/>[demo_simulation.py]"]
+end
+
+node_retell_flow -->|"book"| node_api_booking
+node_retell_flow -->|"availability"| node_api_availability
+node_retell_flow -->|"faq"| node_api_faq
+node_retell_flow -->|"transfer"| node_api_transfer
+node_retell_agent_config -->|"drives"| node_retell_flow
+node_retell_prompts -.->|"supports"| node_retell_flow
+node_main_app -->|"mounts"| node_api_booking
+node_main_app -->|"mounts"| node_api_availability
+node_main_app -->|"mounts"| node_api_faq
+node_main_app -->|"mounts"| node_api_transfer
+node_main_app -->|"mounts"| node_api_webhook
+node_api_booking -->|"uses"| node_booking_service
+node_api_availability -->|"uses"| node_booking_service
+node_api_faq -->|"uses"| node_faq_service
+node_api_webhook -->|"protects"| node_signature_mw
+node_api_webhook -->|"validates"| node_webhook_models
+node_booking_service -->|"validates"| node_appointment_models
+node_booking_service -->|"writes"| node_sheets_service
+node_booking_service -->|"notifies"| node_email_service
+node_faq_service -->|"uses"| node_faq_models
+node_sheets_service -->|"reads/writes"| node_google_sheets
+node_email_service -->|"sends"| node_smtp
+node_email_service -->|"renders"| node_email_template
+node_booking_service -.->|"uses"| node_datetime_helpers
+node_api_webhook -.->|"logs"| node_logger
+node_main_app -->|"loads"| node_config
+node_setup_sheets -.->|"initializes"| node_google_sheets
+node_seed_faq -.->|"seeds"| node_google_sheets
+node_demo_sim -.->|"exercises"| node_api_booking
+node_demo_sim -.->|"exercises"| node_api_webhook
+
+classDef toneBlue fill:#dbeafe,stroke:#2563eb,stroke-width:1.5px,color:#172554
+classDef toneAmber fill:#fef3c7,stroke:#d97706,stroke-width:1.5px,color:#78350f
+classDef toneMint fill:#dcfce7,stroke:#16a34a,stroke-width:1.5px,color:#14532d
+classDef toneRose fill:#ffe4e6,stroke:#e11d48,stroke-width:1.5px,color:#881337
+class node_retell_agent_config,node_retell_flow,node_retell_prompts toneBlue
+class node_main_app,node_api_booking,node_api_availability,node_api_faq,node_api_transfer,node_api_webhook,node_signature_mw,node_booking_service,node_faq_service,node_sheets_service,node_email_service,node_appointment_models,node_faq_models,node_webhook_models,node_config toneAmber
+class node_google_sheets,node_smtp toneMint
+class node_datetime_helpers,node_logger,node_email_template,node_setup_sheets,node_seed_faq,node_demo_sim toneRose
