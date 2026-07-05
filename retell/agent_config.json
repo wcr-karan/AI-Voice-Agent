@@ -1,0 +1,35 @@
+{
+  "agent_name": "QuensultingAI Dental Receptionist",
+  "voice_id": "11labs-Adrian",
+  "language": "en-US",
+  "model": "gpt-4o-mini",
+  "responsiveness": 0.7,
+  "interruption_sensitivity": 0.7,
+  "voice_speed": 1.0,
+  "voice_temperature": 0.4,
+  "backchannel_enabled": false,
+  "ambient_sound": "off",
+  "enable_backchannel": false,
+  "reminder_trigger_ms": 10000,
+  "reminder_max_count": 1,
+  "end_call_after_silence_ms": 15000,
+  "max_call_duration_ms": 600000,
+  "post_call_analysis_data": [
+    {
+      "name": "call_summary",
+      "type": "string",
+      "description": "A concise summary of the call including the caller's intent, actions taken, and outcome."
+    },
+    {
+      "name": "user_sentiment",
+      "type": "enum",
+      "description": "Overall caller sentiment.",
+      "choices": ["positive", "neutral", "negative"]
+    }
+  ],
+  "webhook_url": "{{BACKEND_URL}}/webhook",
+  "metadata": {
+    "clinic": "QuensultingAI Dental Clinic",
+    "version": "1.0.0"
+  }
+}

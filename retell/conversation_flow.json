@@ -1,0 +1,584 @@
+{
+  "name": "QuensultingAI Dental Receptionist",
+  "description": "AI voice receptionist for QuensultingAI Dental Clinic — handles appointment booking, FAQs, and human transfers.",
+  "nodes": [
+    {
+      "id": "greeting",
+      "type": "conversation",
+      "instruction": {
+        "type": "prompt",
+        "text": "You are Lisa, the virtual receptionist for QuensultingAI Dental Clinic.\n\nGreet the caller warmly and ask how you can help today.\n\nOpening line: 'Thank you for calling QuensultingAI Dental Clinic! This is Lisa, your virtual assistant. How can I help you today?'\n\nBe warm, professional, and concise. This is a phone conversation — keep it natural."
+      },
+      "edges": [
+        {
+          "id": "greeting_to_intent",
+          "transition_condition": {
+            "type": "prompt",
+            "prompt": "The caller has responded and stated their need or question."
+          },
+          "destination_node_id": "intent_detection"
+        }
+      ]
+    },
+    {
+      "id": "intent_detection",
+      "type": "logic_split",
+      "instruction": {
+        "type": "prompt",
+        "text": "Determine the caller's intent from their response.\n\nPossible intents:\n- book_appointment: They want to schedule, book, or make an appointment\n- ask_question: They have a question about services, pricing, insurance, hours, etc.\n- speak_to_human: They explicitly ask to speak to a person, manager, or receptionist\n- unclear: You cannot determine what they need"
+      },
+      "extract_variables": [
+        {
+          "name": "intent",
+          "type": "string",
+          "description": "Detected caller intent: book_appointment | ask_question | speak_to_human | unclear"
+        }
+      ],
+      "edges": [
+        {
+          "id": "intent_to_booking",
+          "transition_condition": {
+            "type": "prompt",
+            "prompt": "The caller wants to book, schedule, or make an appointment."
+          },
+          "destination_node_id": "collect_service"
+        },
+        {
+          "id": "intent_to_faq",
+          "transition_condition": {
+            "type": "prompt",
+            "prompt": "The caller has a question about services, pricing, hours, insurance, or other information."
+          },
+          "destination_node_id": "identify_question"
+        },
+        {
+          "id": "intent_to_transfer",
+          "transition_condition": {
+            "type": "prompt",
+            "prompt": "The caller explicitly wants to speak to a human, person, or real receptionist."
+          },
+          "destination_node_id": "human_transfer"
+        },
+        {
+          "id": "intent_to_fallback",
+          "transition_condition": {
+            "type": "prompt",
+            "prompt": "The caller's intent is unclear or cannot be determined."
+          },
+          "destination_node_id": "fallback"
+        }
+      ]
+    },
+    {
+      "id": "collect_service",
+      "type": "conversation",
+      "instruction": {
+        "type": "prompt",
+        "text": "Ask the caller which dental service they'd like to book.\n\nAvailable services:\n- Dental Cleaning\n- Root Canal Treatment\n- Teeth Whitening\n- Braces Consultation\n- Tooth Extraction\n- General Dental Consultation\n\nIf they already mentioned a service, confirm it. Otherwise, briefly list the options and ask which one they'd like.\n\nBe concise — don't read the entire list unless they ask."
+      },
+      "extract_variables": [
+        {
+          "name": "service_type",
+          "type": "string",
+          "description": "The dental service the caller wants to book"
+        }
+      ],
+      "edges": [
+        {
+          "id": "service_to_name",
+          "transition_condition": {
+            "type": "prompt",
+            "prompt": "The caller has selected or confirmed a dental service."
+          },
+          "destination_node_id": "collect_name"
+        }
+      ]
+    },
+    {
+      "id": "collect_name",
+      "type": "conversation",
+      "instruction": {
+        "type": "prompt",
+        "text": "Ask the caller for their full name.\n\nSay: 'May I have your full name, please?'\n\nAfter they respond, repeat the name back to confirm: 'Just to confirm, that's [name], correct?'"
+      },
+      "extract_variables": [
+        {
+          "name": "customer_name",
+          "type": "string",
+          "description": "The caller's full name"
+        }
+      ],
+      "edges": [
+        {
+          "id": "name_to_phone",
+          "transition_condition": {
+            "type": "prompt",
+            "prompt": "The caller has provided and confirmed their name."
+          },
+          "destination_node_id": "collect_phone"
+        }
+      ]
+    },
+    {
+      "id": "collect_phone",
+      "type": "conversation",
+      "instruction": {
+        "type": "prompt",
+        "text": "Ask the caller for their phone number.\n\nSay: 'And what's the best phone number to reach you at?'\n\nAfter they provide it, read it back digit by digit to confirm: 'Let me confirm that — [number]. Is that correct?'\n\nIMPORTANT: Listen carefully to each digit. Phone numbers are critical — do not guess."
+      },
+      "extract_variables": [
+        {
+          "name": "customer_phone",
+          "type": "string",
+          "description": "The caller's phone number"
+        }
+      ],
+      "edges": [
+        {
+          "id": "phone_to_email",
+          "transition_condition": {
+            "type": "prompt",
+            "prompt": "The caller has provided and confirmed their phone number."
+          },
+          "destination_node_id": "collect_email"
+        }
+      ]
+    },
+    {
+      "id": "collect_email",
+      "type": "conversation",
+      "instruction": {
+        "type": "prompt",
+        "text": "Ask the caller for their email address to send a confirmation.\n\nSay: 'Could I get your email address? We'll send you a confirmation with all the details.'\n\nAfter they provide it, spell it back to confirm: 'That's [email], correct?'\n\nIMPORTANT: Email addresses are critical. Spell back the full address including the domain (e.g., 'j-o-h-n at gmail dot com')."
+      },
+      "extract_variables": [
+        {
+          "name": "customer_email",
+          "type": "string",
+          "description": "The caller's email address"
+        }
+      ],
+      "edges": [
+        {
+          "id": "email_to_date",
+          "transition_condition": {
+            "type": "prompt",
+            "prompt": "The caller has provided and confirmed their email address."
+          },
+          "destination_node_id": "collect_preferred_date"
+        }
+      ]
+    },
+    {
+      "id": "collect_preferred_date",
+      "type": "conversation",
+      "instruction": {
+        "type": "prompt",
+        "text": "Ask the caller when they'd like to come in.\n\nSay: 'When would you like to schedule your appointment? We're open Monday through Saturday, 9 AM to 6 PM.'\n\nAccept both a date and a time preference. If they only give a date, ask about their preferred time. If they only give a time, ask which day."
+      },
+      "extract_variables": [
+        {
+          "name": "preferred_date",
+          "type": "string",
+          "description": "The caller's preferred appointment date"
+        },
+        {
+          "name": "preferred_time",
+          "type": "string",
+          "description": "The caller's preferred appointment time"
+        }
+      ],
+      "edges": [
+        {
+          "id": "date_to_availability",
+          "transition_condition": {
+            "type": "prompt",
+            "prompt": "The caller has provided both a preferred date and time."
+          },
+          "destination_node_id": "check_availability"
+        }
+      ]
+    },
+    {
+      "id": "check_availability",
+      "type": "function",
+      "instruction": {
+        "type": "function_call",
+        "function_name": "check_availability",
+        "description": "Check available appointment slots for the requested date",
+        "endpoint": {
+          "url": "{{BACKEND_URL}}/check-availability",
+          "method": "POST"
+        },
+        "parameters": {
+          "service_type": "{{service_type}}",
+          "preferred_date": "{{preferred_date}}"
+        },
+        "speak_during_execution": true,
+        "speak_message": "Let me check our availability for that date..."
+      },
+      "extract_variables": [
+        {
+          "name": "available_slots",
+          "type": "string",
+          "description": "Available time slots returned by the API"
+        }
+      ],
+      "edges": [
+        {
+          "id": "available_to_confirm",
+          "transition_condition": {
+            "type": "prompt",
+            "prompt": "Slots are available for the requested date."
+          },
+          "destination_node_id": "confirm_slot"
+        },
+        {
+          "id": "unavailable_to_suggest",
+          "transition_condition": {
+            "type": "prompt",
+            "prompt": "No slots are available or the date is invalid."
+          },
+          "destination_node_id": "suggest_alternative"
+        }
+      ]
+    },
+    {
+      "id": "confirm_slot",
+      "type": "conversation",
+      "instruction": {
+        "type": "prompt",
+        "text": "Confirm the appointment details with the caller.\n\nRead back ALL details:\n- Service: {{service_type}}\n- Date and time: Based on available slots and their preference\n- Name: {{customer_name}}\n\nSay something like: 'I have a {{service_type}} appointment available for {{customer_name}} on [date] at [time]. Shall I go ahead and book that for you?'\n\nWait for explicit confirmation (yes, sure, go ahead, etc.) before proceeding."
+      },
+      "extract_variables": [
+        {
+          "name": "confirmed_slot",
+          "type": "string",
+          "description": "The confirmed appointment time slot"
+        }
+      ],
+      "edges": [
+        {
+          "id": "confirmed_to_book",
+          "transition_condition": {
+            "type": "prompt",
+            "prompt": "The caller has confirmed they want to book this appointment."
+          },
+          "destination_node_id": "book_appointment"
+        },
+        {
+          "id": "not_confirmed_to_date",
+          "transition_condition": {
+            "type": "prompt",
+            "prompt": "The caller wants a different time or date."
+          },
+          "destination_node_id": "collect_preferred_date"
+        }
+      ]
+    },
+    {
+      "id": "suggest_alternative",
+      "type": "conversation",
+      "instruction": {
+        "type": "prompt",
+        "text": "The requested slot or date is not available. Apologize and offer alternatives.\n\nIf there are other available slots on the same day, suggest those.\nIf the entire day is full, suggest trying a different day.\n\nBe empathetic: 'I'm sorry, that time isn't available. However, we do have openings at [alternatives]. Would any of those work for you?'"
+      },
+      "edges": [
+        {
+          "id": "alternative_to_date",
+          "transition_condition": {
+            "type": "prompt",
+            "prompt": "The caller wants to try a different date or time."
+          },
+          "destination_node_id": "collect_preferred_date"
+        },
+        {
+          "id": "alternative_to_transfer",
+          "transition_condition": {
+            "type": "prompt",
+            "prompt": "The caller is frustrated and wants to speak to someone."
+          },
+          "destination_node_id": "human_transfer"
+        }
+      ]
+    },
+    {
+      "id": "book_appointment",
+      "type": "function",
+      "instruction": {
+        "type": "function_call",
+        "function_name": "book_appointment",
+        "description": "Book the confirmed appointment in the system",
+        "endpoint": {
+          "url": "{{BACKEND_URL}}/book-appointment",
+          "method": "POST"
+        },
+        "parameters": {
+          "customer_name": "{{customer_name}}",
+          "customer_phone": "{{customer_phone}}",
+          "customer_email": "{{customer_email}}",
+          "service_type": "{{service_type}}",
+          "appointment_date": "{{preferred_date}}",
+          "appointment_time": "{{confirmed_slot}}"
+        },
+        "speak_during_execution": true,
+        "speak_message": "Let me book that for you right now..."
+      },
+      "extract_variables": [
+        {
+          "name": "booking_id",
+          "type": "string",
+          "description": "The generated booking reference ID"
+        },
+        {
+          "name": "booking_status",
+          "type": "string",
+          "description": "Booking status: confirmed, failed, or conflict"
+        }
+      ],
+      "edges": [
+        {
+          "id": "booked_to_confirmation",
+          "transition_condition": {
+            "type": "prompt",
+            "prompt": "The appointment was successfully booked."
+          },
+          "destination_node_id": "booking_confirmation"
+        },
+        {
+          "id": "booking_failed_to_transfer",
+          "transition_condition": {
+            "type": "prompt",
+            "prompt": "The booking failed due to a technical error."
+          },
+          "destination_node_id": "human_transfer"
+        }
+      ]
+    },
+    {
+      "id": "booking_confirmation",
+      "type": "conversation",
+      "instruction": {
+        "type": "prompt",
+        "text": "The appointment has been successfully booked!\n\nConfirm the booking to the caller with enthusiasm. Include:\n- The booking reference number: {{booking_id}}\n- Mention that a confirmation email has been sent to their email\n- Remind them to arrive 10 minutes early\n\nSay something like: 'You're all set! Your booking reference is {{booking_id}}. I've sent a confirmation email to {{customer_email}} with all the details. Please arrive about 10 minutes early for check-in.'\n\nThen ask if there's anything else you can help with."
+      },
+      "edges": [
+        {
+          "id": "confirmation_to_anything_else",
+          "transition_condition": {
+            "type": "prompt",
+            "prompt": "The booking confirmation has been delivered to the caller."
+          },
+          "destination_node_id": "anything_else"
+        }
+      ]
+    },
+    {
+      "id": "identify_question",
+      "type": "conversation",
+      "instruction": {
+        "type": "prompt",
+        "text": "The caller has a question. Listen carefully to their question.\n\nIf they've already stated their question, acknowledge it. Otherwise, ask: 'Of course! What would you like to know?'\n\nCapture the essence of their question for the FAQ lookup."
+      },
+      "extract_variables": [
+        {
+          "name": "faq_query",
+          "type": "string",
+          "description": "The caller's question or topic they want information about"
+        }
+      ],
+      "edges": [
+        {
+          "id": "question_to_lookup",
+          "transition_condition": {
+            "type": "prompt",
+            "prompt": "The caller has stated their question."
+          },
+          "destination_node_id": "lookup_faq"
+        }
+      ]
+    },
+    {
+      "id": "lookup_faq",
+      "type": "function",
+      "instruction": {
+        "type": "function_call",
+        "function_name": "check_faq",
+        "description": "Look up an answer from the FAQ knowledge base",
+        "endpoint": {
+          "url": "{{BACKEND_URL}}/check-faq",
+          "method": "POST"
+        },
+        "parameters": {
+          "question": "{{faq_query}}"
+        },
+        "speak_during_execution": false
+      },
+      "extract_variables": [
+        {
+          "name": "faq_answer",
+          "type": "string",
+          "description": "The answer from the FAQ knowledge base"
+        }
+      ],
+      "edges": [
+        {
+          "id": "faq_found_to_deliver",
+          "transition_condition": {
+            "type": "prompt",
+            "prompt": "An answer was found in the FAQ database."
+          },
+          "destination_node_id": "deliver_answer"
+        },
+        {
+          "id": "faq_not_found_to_fallback",
+          "transition_condition": {
+            "type": "prompt",
+            "prompt": "No matching answer was found."
+          },
+          "destination_node_id": "fallback"
+        }
+      ]
+    },
+    {
+      "id": "deliver_answer",
+      "type": "conversation",
+      "instruction": {
+        "type": "prompt",
+        "text": "Deliver the FAQ answer to the caller in a natural, conversational way.\n\nThe answer is: {{faq_answer}}\n\nDo NOT read it verbatim if it sounds robotic. Paraphrase it naturally as if you're a knowledgeable receptionist. Keep it concise — this is a phone call.\n\nAfter delivering the answer, ask if they have any other questions."
+      },
+      "edges": [
+        {
+          "id": "answer_to_anything_else",
+          "transition_condition": {
+            "type": "prompt",
+            "prompt": "The answer has been delivered to the caller."
+          },
+          "destination_node_id": "anything_else"
+        }
+      ]
+    },
+    {
+      "id": "anything_else",
+      "type": "conversation",
+      "instruction": {
+        "type": "prompt",
+        "text": "Ask the caller if there's anything else you can help with.\n\nSay: 'Is there anything else I can help you with today?'\n\nListen for:\n- If they have another question → route back to intent detection\n- If they want to book an appointment → route to booking\n- If they say no / that's all / goodbye → route to closing"
+      },
+      "edges": [
+        {
+          "id": "more_help_to_intent",
+          "transition_condition": {
+            "type": "prompt",
+            "prompt": "The caller has another question or request."
+          },
+          "destination_node_id": "intent_detection"
+        },
+        {
+          "id": "no_more_to_closing",
+          "transition_condition": {
+            "type": "prompt",
+            "prompt": "The caller has no more questions and wants to end the call."
+          },
+          "destination_node_id": "closing"
+        }
+      ]
+    },
+    {
+      "id": "fallback",
+      "type": "conversation",
+      "instruction": {
+        "type": "prompt",
+        "text": "You didn't understand the caller's request or couldn't find an answer.\n\nApologize and try to help:\n- If this is the first time: 'I'm sorry, I didn't quite catch that. Could you please rephrase your question?'\n- If this is the second time: 'I apologize for the confusion. Let me offer some options — I can help you book an appointment, answer questions about our services, or connect you with our front desk team. Which would you prefer?'\n\nTrack the fallback count. After 2 failed attempts, automatically offer to transfer."
+      },
+      "extract_variables": [
+        {
+          "name": "fallback_count",
+          "type": "number",
+          "description": "Number of times the fallback has been triggered in this call"
+        }
+      ],
+      "edges": [
+        {
+          "id": "fallback_to_clarify",
+          "transition_condition": {
+            "type": "prompt",
+            "prompt": "This is the first or second fallback attempt and the caller is willing to try again."
+          },
+          "destination_node_id": "intent_detection"
+        },
+        {
+          "id": "fallback_to_transfer",
+          "transition_condition": {
+            "type": "prompt",
+            "prompt": "The caller is still not understood after 2 attempts, or they ask for a human."
+          },
+          "destination_node_id": "human_transfer"
+        }
+      ]
+    },
+    {
+      "id": "human_transfer",
+      "type": "function",
+      "instruction": {
+        "type": "function_call",
+        "function_name": "transfer_call",
+        "description": "Transfer the call to a human receptionist",
+        "endpoint": {
+          "url": "{{BACKEND_URL}}/transfer-call",
+          "method": "POST"
+        },
+        "parameters": {
+          "reason": "Caller requires human assistance",
+          "context_summary": "{{faq_query}}"
+        },
+        "speak_during_execution": true,
+        "speak_message": "Let me connect you with our front desk team. Please hold for just a moment."
+      },
+      "edges": [
+        {
+          "id": "transfer_to_end",
+          "transition_condition": {
+            "type": "prompt",
+            "prompt": "The transfer has been initiated."
+          },
+          "destination_node_id": "end_call"
+        }
+      ]
+    },
+    {
+      "id": "closing",
+      "type": "conversation",
+      "instruction": {
+        "type": "prompt",
+        "text": "Thank the caller and close the conversation professionally.\n\nSay: 'Thank you for calling QuensultingAI Dental Clinic! Have a wonderful day. Goodbye!'\n\nBe warm and genuine."
+      },
+      "edges": [
+        {
+          "id": "closing_to_end",
+          "transition_condition": {
+            "type": "prompt",
+            "prompt": "The closing message has been delivered."
+          },
+          "destination_node_id": "end_call"
+        }
+      ]
+    },
+    {
+      "id": "end_call",
+      "type": "end",
+      "instruction": {
+        "type": "prompt",
+        "text": "End the call."
+      }
+    }
+  ],
+  "starting_node_id": "greeting",
+  "global_settings": {
+    "backchannel_enabled": false,
+    "interruption_sensitivity": 0.7,
+    "responsiveness": 0.7,
+    "voice_speed": 1.0,
+    "ambient_sound": "off"
+  }
+}
